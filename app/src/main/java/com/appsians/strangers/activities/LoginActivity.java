@@ -10,14 +10,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.appsians.strangers.R;
-import com.appsians.strangers.models.User;
+import com.example.randomvidchat.R;
+import com.example.randomvidchat.models.User;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;import com.google.firebase.FirebaseApp;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,44 +33,26 @@ public class LoginActivity extends AppCompatActivity {
     int RC_SIGN_IN = 11;
     FirebaseAuth mAuth;
     FirebaseDatabase database;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
         mAuth = FirebaseAuth.getInstance();
-
-
-
-        if(mAuth.getCurrentUser() != null) {
-            goToNextActivity();
-        }
-
-        database = FirebaseDatabase.getInstance();
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
-
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-
         findViewById(R.id.loginBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = mGoogleSignInClient.getSignInIntent();
                 startActivityForResult(intent, RC_SIGN_IN);
-                //startActivity(new Intent(LoginActivity.this, MainActivity.class));
+//                startActivity(new Intent(LoginActivity.this,MainActivity.class));
             }
         });
     }
-
-    void goToNextActivity() {
-        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-        finish();
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -81,23 +63,22 @@ public class LoginActivity extends AppCompatActivity {
             authWithGoogle(account.getIdToken());
         }
     }
-
     void authWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull @NotNull Task<AuthResult> task) {
-                        if(task.isSuccessful()){
+                        if (task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
                             User firebaseUser = new User(user.getUid(), user.getDisplayName(), user.getPhotoUrl().toString(), "Unknown", 500);
-                            database.getReference()
+                            database.getInstance().getReference()
                                     .child("profiles")
                                     .child(user.getUid())
                                     .setValue(firebaseUser).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull @NotNull Task<Void> task) {
-                                    if(task.isSuccessful()){
+                                    if (task.isSuccessful()) {
                                         startActivity(new Intent(LoginActivity.this, MainActivity.class));
                                         finishAffinity();
                                     } else {
@@ -112,4 +93,3 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
     }
-}
