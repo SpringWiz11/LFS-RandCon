@@ -7,6 +7,7 @@ public class User {
     public User() {
 
     }
+//     Java
 
     public User(String uId, String name, String profile, String city, long coins) {
         this.uId = uId;
